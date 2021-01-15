@@ -1,5 +1,3 @@
-import { Component } from "react";
-
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import {
@@ -8,23 +6,44 @@ import {
     GridToolbar
 } from "@progress/kendo-react-grid";
 
+import { MyCommandCell } from "./MyCommandCell.js";
 import { insertItem, getItems, updateItem, deleteItem } from "./service.js";
 import '@progress/kendo-theme-default/dist/all.css';
 import './Login.css';
-import { MyCommandCell } from "./MyCommandCell.js";
+import { TestData } from './TestData.jsx';
 
-export default class Dashboard extends Component {
-
+export default class Dashboard extends React.Component {
     editField = "inEdit";
     state = {
-        data: []
+        data: [...TestData],
+        userName: "XYZ"
     };
 
-    componentDidMount() {
-        this.setState({
-            data: getItems()
-        });
+    // componentDidMount() {
+    //     this.setState({
+    //         data: getItems()
+    //     });
+    // }
+
+    getData = () => {
+        const json = { userName: this.state.userName }
+        // getRecord(json)
+        //     .then(res => {
+        //         if (res.status == 200) {
+        //             console.log(res)
+        //             this.setState({ data: res.data })
+        //         }
+        //         else {
+        //             console.log("Error")
+        //         }
+        //     })
     }
+
+    componentDidMount() {
+        console.log(this.state.userName)
+        this.getData();
+    }
+
 
     CommandCell = props => (
         <MyCommandCell
@@ -39,7 +58,7 @@ export default class Dashboard extends Component {
         />
     );
 
-
+    // modify the data in the store, db etc
     remove = dataItem => {
         const data = deleteItem(dataItem);
         this.setState({ data });
@@ -48,10 +67,39 @@ export default class Dashboard extends Component {
     add = dataItem => {
         dataItem.inEdit = true;
 
-        const data = insertItem(dataItem);
-        this.setState({
-            data: data
-        });
+        //const data = insertItem(dataItem);
+        // this.setState({
+        //     data: data
+        // });
+
+
+
+        const data = [...this.state.data];
+
+        // dataItem.inEdit = undefined;
+         dataItem.id = this.generateId(data);
+
+         data.unshift(dataItem);
+         this.setState({
+             data: [...this.state.data]
+         });
+         dataItem.createdBy = sessionStorage.getItem("username")
+
+         console.log(dataItem)
+         addRecord(dataItem).then(res => {
+             if (res.status === 200) {
+                 alert(res.data)
+             }
+             else {
+                 alert("Error Occurred.")
+             }
+         })
+             .catch(err => {
+                 alert(err);
+                 this.setState({
+                     redirect: true
+                 })
+             })
     };
 
     update = dataItem => {
@@ -69,10 +117,10 @@ export default class Dashboard extends Component {
 
     cancel = dataItem => {
         const originalItem = getItems().find(
-            p => p.ProductID === dataItem.ProductID
+            p => p.siteId === dataItem.siteId
         );
         const data = this.state.data.map(item =>
-            item.ProductID === originalItem.ProductID ? originalItem : item
+            item.siteId === originalItem.siteId ? originalItem : item
         );
 
         this.setState({ data });
@@ -81,14 +129,14 @@ export default class Dashboard extends Component {
     enterEdit = dataItem => {
         this.setState({
             data: this.state.data.map(item =>
-                item.ProductID === dataItem.ProductID ? { ...item, inEdit: true } : item
+                item.siteId === dataItem.siteId ? { ...item, inEdit: true } : item
             )
         });
     };
 
     itemChange = event => {
         const data = this.state.data.map(item =>
-            item.ProductID === event.dataItem.ProductID
+            item.siteId === event.dataItem.siteId
                 ? { ...item, [event.field]: event.value }
                 : item
         );
@@ -97,23 +145,20 @@ export default class Dashboard extends Component {
     };
 
     addNew = () => {
-        const newDataItem = { inEdit: true, Discontinued: false };
+        const newDataItem = { inEdit: true };
 
         this.setState({
             data: [newDataItem, ...this.state.data]
         });
+
+        
     };
 
-
-
-
-
-
-    render(){
+    render() {
         return (
             <div className="Login">
             <Grid
-                style={{ height: "420px" }}
+                style={{ height: "620px" , padding: "120px" }}
                 data={this.state.data}
                 onItemChange={this.itemChange}
                 editField={this.editField}
@@ -127,15 +172,17 @@ export default class Dashboard extends Component {
                         Add new
           </button>
                 </GridToolbar>
-                {/* <Column field="ProductID" title="Id" width="50px" editable={false} /> */}
-                <Column field="Site/App Name" title="Site/App Name" width="200px" />
-                <Column field="Site/App User Name" title="Site/App User Name" width="200px" />
-                <Column field="Site/App Password" title="Site/App Password" width="200px" />
-                <Column cell={this.CommandCell} width="200px" />
+                <Column field="siteId" title="Site Id" width="50px" editable={false} />
+                <Column field="siteName" title="Site Name" width="200px" />
+                <Column
+                    field="sitePwd"
+                    title="Site Password"
+                    width="150px"
+                />
+              
+                <Column cell={this.CommandCell} width="180px" />
             </Grid>
             </div>
         );
     }
-
-
 }
