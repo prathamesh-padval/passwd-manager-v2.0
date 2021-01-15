@@ -1,103 +1,51 @@
-import axios from 'axios';
-import React, { Component } from 'react'
-import {Link, Redirect} from 'react-router-dom'
-import { loginUrl } from '../Constants';
+import React, { useState } from "react";
+import Form from "react-bootstrap/Form";
+import Button from "react-bootstrap/Button";
+import { Link } from "react-router-dom";
+import './Login.css';
 
 
-export default class Login extends Component{
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-    constructor(props){
-        super(props);
-        this.state={
-            navigate : false,
-            userName : "",
-            password : ""
-        }
-    }
+  function validateForm() {
+    return email.length > 0 && password.length > 0;
+  
+  }
 
+  function handleSubmit(event) {
 
-    handleChange = (e) =>{
-        this.setState({
-            [e.target.name]:e.target.value
-        })
-    }
+    event.preventDefault();
+  
+  }
 
-
-    authenticate = () =>{
-        const authJson = {
-            userName: this.state.userName,
-            password: this.state.password
-        };
-        
-        console.log(authJson)
-
-        axios.request({
-            method:"POST",
-            data:authJson,
-            url:loginUrl
-        }).then((response)=>{
-           
-                if(response.data===true){
-                    this.setState({
-                        navigate:true
-                    })
-                    console.log(this.state.navigate)
-                }
-                else{
-                    console.error("Login Failed")
-                }    
-        })
-        .catch((response)=>{
-            console.log(response)
-        }
-        )
-    }
-
-
-    render(){
-        const { navigate } = this.state;
-
-        console.log(navigate)
-
-        if (navigate) {
-            return <Redirect to="/dash" push={true} />;
-        }
-
-        return (
-            <center>
-                <div className="Login" ><h3>Login</h3>
-                    <div>
-                        <label htmlFor="UserName">User Name</label>
-                        <input
-                          id="userName"
-                          name="userName"
-                          type="text"
-                          onKeyUp={this.handleChange}
-                          required
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="Password">Password</label>
-                        <input
-                          id="password"
-                          name="password"
-                          type="password"
-                          onKeyUp={this.handleChange}
-                          required
-                        />
-                      </div>
-                      <div>
-                        <button
-                          role="button"
-                          className="button"
-                          onClick={this.authenticate}
-                        >
+  return (
+    <div className="Login">
+      <Form onSubmit={handleSubmit}>
+        <Form.Group size="lg" controlId="email">
+          <Form.Label>Email</Form.Label>
+          <Form.Control
+            autoFocus
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </Form.Group>
+        <Form.Group size="lg" controlId="password">
+          <Form.Label>Password</Form.Label>
+          <Form.Control
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </Form.Group>
+        <Button block size="lg" type="submit" disabled={!validateForm()}>
+        <Link to="/dashboard" style={{ color: "black" }} >
                           Login
-                        </button>
-                      </div>
-                    </div>
-            </center>
-          );
-    }
-
+                        </Link>
+        </Button>
+      </Form>
+    </div>
+  );
 }
