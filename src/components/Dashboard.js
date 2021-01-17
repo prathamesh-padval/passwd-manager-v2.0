@@ -11,12 +11,13 @@ import { insertItem, getItems, updateItem, deleteItem } from "./service.js";
 import '@progress/kendo-theme-default/dist/all.css';
 import './Login.css';
 import { TestData } from './TestData.jsx';
+import { addRecord, getRecord } from "./PasswordDataCall.js";
 
 export default class Dashboard extends React.Component {
     editField = "inEdit";
     state = {
-        data: [...TestData],
-        userName: "XYZ"
+        data: [],
+        userName: "rahim"
     };
 
     // componentDidMount() {
@@ -27,16 +28,16 @@ export default class Dashboard extends React.Component {
 
     getData = () => {
         const json = { userName: this.state.userName }
-        // getRecord(json)
-        //     .then(res => {
-        //         if (res.status == 200) {
-        //             console.log(res)
-        //             this.setState({ data: res.data })
-        //         }
-        //         else {
-        //             console.log("Error")
-        //         }
-        //     })
+         getRecord(json)
+             .then(res => {
+                 if (res.status == 200) {
+                     console.log("Getting response from API--",res.data)
+                     this.setState({ data: res.data })
+                 }
+                 else {
+                     console.log("Error")
+                 }
+             })
     }
 
     componentDidMount() {
@@ -146,10 +147,46 @@ export default class Dashboard extends React.Component {
 
     addNew = () => {
         const newDataItem = { inEdit: true };
+        const dataItem = { inEdit: true };
+        
+        dataItem.inEdit = true;
 
-        this.setState({
-            data: [newDataItem, ...this.state.data]
-        });
+        //const data = insertItem(dataItem);
+        // this.setState({
+        //     data: data
+        // });
+
+
+
+        const data = [...this.state.data];
+
+        // dataItem.inEdit = undefined;
+         dataItem.id = this.generateId(data);
+
+         data.unshift(dataItem);
+         this.setState({
+             data: [...this.state.data]
+         });
+         dataItem.createdBy = sessionStorage.getItem("username")
+
+         console.log(dataItem)
+         addRecord(dataItem).then(res => {
+             if (res.status === 200) {
+                 alert(res.data)
+                 this.setState({
+                    data: [newDataItem, ...this.state.data]
+                });
+             }
+             else {
+                 alert("Error Occurred.")
+             }
+         })
+             .catch(err => {
+                 alert(err);
+                 this.setState({
+                     redirect: true
+                 })
+             })
 
         
     };
@@ -172,8 +209,13 @@ export default class Dashboard extends React.Component {
                         Add new
           </button>
                 </GridToolbar>
-                <Column field="siteId" title="Site Id" width="50px" editable={false} />
+                <Column field="pwdId" title="Password Id" width="90px" editable={false} />
                 <Column field="siteName" title="Site Name" width="200px" />
+                <Column
+                    field="siteUserName"
+                    title="Site UserName"
+                    width="150px"
+                />
                 <Column
                     field="sitePwd"
                     title="Site Password"
@@ -185,4 +227,13 @@ export default class Dashboard extends React.Component {
             </div>
         );
     }
+
+
+generateId = data => data.reduce((acc, current) => Math.max(acc, current.id), 0) + 1;
+removeItem(data, item) {
+    let index = data.findIndex(p => p === item || item.id && p.id === item.id);
+    if (index >= 0) {
+        data.splice(index, 1);
+    }
+}
 }

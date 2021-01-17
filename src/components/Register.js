@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 import { Link, Redirect } from "react-router-dom";
 import Axios from "axios";
-import { loginURL } from "./Constants";
+import { register } from "./Constants";
 
-export default class Login extends Component {
+export default class Register extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -77,6 +77,10 @@ export default class Login extends Component {
       errors["password"] = "*Please enter your password.";
     }
 
+    if (!fields["userpin"]) {
+        formIsValid = false;
+        errors["userpin"] = "*Please enter your userpin.";
+      }
 
     this.setState({
       errors: errors
@@ -90,22 +94,21 @@ export default class Login extends Component {
     const authJson = {
       username: this.state.fields.username,
       password: this.state.fields.password,
+      userpin: this.state.fields.userpin,
     };
 
     console.log(authJson)
     Axios.request({
       method: "POST",
       data: authJson,
-      url: loginURL
+      url: register
     })
       .then((response) => {
         alert("User Authentication Successful.")
         // localStorage.setItem("username",this.state.fields.username)
         // localStorage.setItem("token",response.data.jwttoken);
         // localStorage.setItem("logintime",response.data.loginTime);
-        sessionStorage.setItem("username", this.state.fields.username)
-        sessionStorage.setItem("token", response.data.jwttoken);
-        sessionStorage.setItem("logintime", response.data.loginTime);
+       
         this.setState({ navigate: true });
       })
       .catch((err) => {
@@ -120,7 +123,7 @@ export default class Login extends Component {
 
     // here is the important part
     if (navigate) {
-      return <Redirect to="/dashboard" push={true} />;
+      return <Redirect to="/login" push={true} />;
     }
 
     return (
@@ -150,9 +153,16 @@ export default class Login extends Component {
               maxLength="10"
               minLength="5"
             /></p>
-            <p className="remember_me">
-              <Link to="/register" className="button secondary">New User? Register Here</Link>
-            </p>
+             <p><input
+              id="userpin"
+              name="userpin"
+              type="text"
+              placeholder="userpin"
+              onKeyUp={this.handleChange}
+              required
+              maxLength="8"
+            /></p>
+            
             <p className="submit"> <button
               role="button"
               className="button"
